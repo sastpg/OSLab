@@ -1,4 +1,5 @@
-// arch/riscv/include/proc.h
+#ifndef _PROC_H
+#define _PROC_H
 
 #include "types.h"
 
@@ -8,6 +9,8 @@
 
 #define PRIORITY_MIN 1
 #define PRIORITY_MAX 10
+
+#define INFINITE_TIME 10000000000
 
 /* 用于记录 `线程` 的 `内核栈与用户栈指针` */
 /* (lab3中无需考虑, 在这里引入是为了之后实验的使用) */
@@ -48,3 +51,5 @@ void switch_to(struct task_struct* next);
 
 /* dummy funciton: 一个循环程序, 循环输出自己的 pid 以及一个自增的局部变量 */
 void dummy();
+
+#endif

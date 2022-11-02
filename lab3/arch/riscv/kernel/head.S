@@ -6,6 +6,9 @@ _start:
     # ------------------
     # - your code here -
     # ------------------
+    
+    la sp, boot_stack_top
+    call task_init
 
     # set stvec = _traps
     la t0, _traps
@@ -35,7 +38,6 @@ _start:
     ori t1, t0, 0x00000002
     csrw sstatus, t1
 
-    la sp, boot_stack_top
     jal start_kernel  # jump to start_kernel
 
     .section .bss.stack

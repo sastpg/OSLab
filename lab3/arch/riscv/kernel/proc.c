@@ -1,15 +1,18 @@
+#include "mm.h"
 #include "proc.h"
 #include "defs.h"
 #include "rand.h"
 #include "printk.h"
 
 extern void __dummy();
+extern void __switch_to(struct task_struct* prev, struct task_struct* next);
 
 struct task_struct* idle;           // idle process
 struct task_struct* current;        // 指向当前运行线程的 `task_struct`
 struct task_struct* task[NR_TASKS]; // 线程数组, 所有的线程都保存在此
 
 void task_init() {
+    printk("hello\n");
     // 1. 调用 kalloc() 为 idle 分配一个物理页
     // 2. 设置 state 为 TASK_RUNNING;
     // 3. 由于 idle 不参与调度 可以将其 counter / priority 设置为 0
@@ -68,3 +71,90 @@ void dummy() {
     }
 }
 
+void switch_to(struct task_struct* next) {
+    /* YOUR CODE HERE */
+    if(current->pid != next->pid) {
+        struct task_struct *prev = current;
+        current = next;
+        __switch_to(prev, next);
+    }
+}
+
+void do_timer(void) {
+    // 1. 如果当前线程是 idle 线程 直接进行调度
+    // 2. 如果当前线程不是 idle 对当前线程的运行剩余时间减1 若剩余时间仍然大于0 则直接返回 否则进行调度
+
+    /* YOUR CODE HERE */
+    if(current->pid == 0)
+        schedule();
+    else
+    {
+        if(--(current->counter) == 0)
+        {
+            current->state = !TASK_RUNNING;
+            schedule();
+        }
+    }
+}
+
+#ifdef SJF
+void schedule(void) {
+    /* YOUR CODE HERE */
+    int i;
+    int next_thread_id;
+    uint64 min_time = INFINITE_TIME;
+
+    for(i = 1; i < NR_TASKS; i++) {
+        if(task[i]->counter)
+            break;
+    }
+    if(i == NR_TASKS) {
+        for(i = 1; i < NR_TASKS; i++)
+        {
+            task[i]->state = TASK_RUNNING;
+            task[i]->counter = rand();
+            printk("SET [PID = %d COUNTER = %d]\n", i, task[i]->counter);
+        }
+    }
+
+    for(i = 1; i < NR_TASKS; i++) {
+        if(task[i]->state == TASK_RUNNING && task[i]->counter < min_time) {
+            min_time = task[i]->counter;
+            next_thread_id = i;
+        }
+    }
+    printk("switch to [PID = %d COUNTER = %d]\n", next_thread_id, task[next_thread_id]->counter);
+    switch_to(task[next_thread_id]);
+}
+#endif
+
+#ifdef PRIORITY
+void schedule(void) {
+    /* YOUR CODE HERE */
+    int i;
+    int next_thread_id;
+    uint64 max_priority = 0;
+
+    for(i = 1; i < NR_TASKS; i++) {
+        if(task[i]->counter)
+            break;
+    }
+    if(i == NR_TASKS) {
+        for(i = 1; i < NR_TASKS; i++)
+        {
+            task[i]->state = TASK_RUNNING;
+            task[i]->counter = rand();
+            printk("SET [PID = %d PRIORITY = %d COUNTER = %d]\n", i, task[i]->priority, task[i]->counter);
+        }
+    }
+
+    for(i = 1; i < NR_TASKS; i++) {
+        if(task[i]->state == TASK_RUNNING && task[i]->priority > max_priority) {
+            max_priority = task[i]->priority;
+            next_thread_id = i;
+        }
+    }
+    printk("switch to [PID = %d PRIORITY = %d COUNTER = %d]\n", next_thread_id, max_priority, task[next_thread_id]->counter);
+    switch_to(task[next_thread_id]);
+}
+#endif
