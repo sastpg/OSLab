@@ -13,23 +13,22 @@ This repository is created for synchronizing codes between different machines an
 - Complete RV64 kernel boot
 - Call API provided by OpenSBI to implement the output of characters in console.
 ```
+OpenSBI v0.9
+____                    _____ ____ _____
+/ __ \                  / ____|  _ \_   _|
+| |  | |_ __   ___ _ __ | (___ | |_) || |
+| |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+| |__| | |_) |  __/ | | |____) | |_) || |_
+\____/| .__/ \___|_| |_|_____/|____/_____|
+      | |
+      |_|
 
-    OpenSBI v0.9
-     ____                    _____ ____ _____
-    / __ \                  / ____|  _ \_   _|
-   | |  | |_ __   ___ _ __ | (___ | |_) || |
-   | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
-   | |__| | |_) |  __/ | | |____) | |_) || |_
-    \____/| .__/ \___|_| |_|_____/|____/_____|
-          | |
-          |_|
+......
 
-    ......
+Boot HART MIDELEG         : 0x0000000000000222
+Boot HART MEDELEG         : 0x000000000000b109
 
-    Boot HART MIDELEG         : 0x0000000000000222
-    Boot HART MEDELEG         : 0x000000000000b109
-
-    ......
+......
 2022 Hello RISC-V
 ```
 ### Lab2
