@@ -8,6 +8,10 @@ _start:
     # ------------------
     
     la sp, boot_stack_top
+    call setup_vm
+    call relocate
+    call mm_init
+    call setup_vm_final
     call task_init
 
     # set stvec = _traps
@@ -43,12 +47,20 @@ _start:
 relocate:
     # set ra = ra + PA2VA_OFFSET
     # set sp = sp + PA2VA_OFFSET (If you have set the sp before)
+    li t0, 0xffffffdf80000000
+    add ra, ra, t0
+    add sp, sp, t0
 
     ###################### 
     #   YOUR CODE HERE   #
     ######################
 
     # set satp with early_pgtbl
+    la t0, early_pgtbl
+    srli t0, t0, 12
+    li t1, 0x8000000000000000
+    or t0, t0, t1
+    csrw satp, t0
 
     ###################### 
     #   YOUR CODE HERE   #

@@ -3,7 +3,7 @@
 Instructor: jjm
 
 ## Notes
-This repository is created for synchronizing codes between different machines and reference. The codes will be submitted to PTA for **duplication checking**, please obey the code of academic.
+This repository is created for synchronizing codes between different machines and reference. The codes will be submitted to PTA for **duplication checking**, please obey the code of academy.
 
 ## Contents
 ### Lab0
@@ -112,5 +112,59 @@ switch to [PID = 3 COUNTER = 4]
 ...
 [PID = 3] is running. auto_inc_local_var = 9
 ```
+### Lab4
+
+```
+OpenSBI v0.9
+  ____                    _____ ____ _____
+ / __ \                  / ____|  _ \_   _|
+| |  | |_ __   ___ _ __ | (___ | |_) || |
+| |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+| |__| | |_) |  __/ | | |____) | |_) || |_
+ \____/| .__/ \___|_| |_|_____/|____/_____|
+       | |
+       |_|
+
+...
+
+Boot HART MIDELEG         : 0x0000000000000222
+Boot HART MEDELEG         : 0x000000000000b109
+
+...mm_init done!
+...proc_init done!
+Hello RISC-V
+idle process is running!
+
+switch to [PID = 28 COUNTER = 1] 
+[PID = 28] is running! thread space begin at 0xffffffe007fa2000
+
+switch to [PID = 12 COUNTER = 1] 
+[PID = 12] is running! thread space begin at 0xffffffe007fb2000
+
+switch to [PID = 14 COUNTER = 2] 
+[PID = 14] is running! thread space begin at 0xffffffe007fb0000
+[PID = 14] is running! thread space begin at 0xffffffe007fb0000
+
+switch to [PID = 9 COUNTER = 2] 
+[PID = 9] is running! thread space begin at 0xffffffe007fb5000
+[PID = 9] is running! thread space begin at 0xffffffe007fb5000
+
+switch to [PID = 2 COUNTER = 2] 
+[PID = 2] is running! thread space begin at 0xffffffe007fbc000
+[PID = 2] is running! thread space begin at 0xffffffe007fbc000
+
+switch to [PID = 1 COUNTER = 2] 
+[PID = 1] is running! thread space begin at 0xffffffe007fbd000
+[PID = 1] is running! thread space begin at 0xffffffe007fbd000
+
+switch to [PID = 29 COUNTER = 3] 
+[PID = 29] is running! thread space begin at 0xffffffe007fa1000
+[PID = 29] is running! thread space begin at 0xffffffe007fa1000
+[PID = 29] is running! thread space begin at 0xffffffe007fa1000
+
+switch to [PID = 11 COUNTER = 3] 
+[PID = 11] is running! thread space begin at 0xffffffe007fb3000
+...
+```
 ## Instruction
-![guide book](https://zju-sec.github.io/os22fall-stu/)
+[guide book](https://zju-sec.github.io/os22fall-stu/)
