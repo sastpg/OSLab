@@ -75,6 +75,12 @@ void setup_vm_final(void) {
     // YOUR CODE HERE
     // flush TLB
     asm volatile("sfence.vma zero, zero");
+
+    // ------------ Test Code Begin ------------
+    // unsigned long int *p = 0xffffffe000202000;
+    // unsigned long int raw = *p;
+    // *p = raw;
+    // ------------  Test Code End  ------------
     return;
 }
 
@@ -123,9 +129,4 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
         va += PGSIZE;
         pa += PGSIZE;
     }
-    // ------ Test Code -----
-    unsigned long int *p = 0xffffffe000202000;
-    unsigned long int raw = *p;
-    *p = raw;
-    // ------ Test Code -----
 }
