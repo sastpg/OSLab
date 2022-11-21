@@ -6,7 +6,8 @@ _start:
     # ------------------
     # - your code here -
     # ------------------
-    
+    # lui sp, 0x40104
+    # slli sp, sp, 1
     la sp, boot_stack_top
     call setup_vm
     call relocate

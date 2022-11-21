@@ -3,7 +3,7 @@
 #include "string.h"
 #include "printk.h"
 /* early_pgtbl: 用于 setup_vm 进行 1GB 的 映射。 */
-unsigned long  early_pgtbl[512] __attribute__((__aligned__(0x1000)));
+unsigned long early_pgtbl[512] __attribute__((__aligned__(0x1000)));
 
 extern char _stext[];
 extern char _srodata[];
@@ -26,14 +26,29 @@ void setup_vm(void) {
     int index;
 
     index = (VA1 >> 30) & 0x1ff;
-    early_pgtbl[index] = (PA >> 2) | 0xf;
+    early_pgtbl[index] = ((PA >> 12) << 10) | 0xf;
     index = (VA2 >> 30) & 0x1ff;
-    early_pgtbl[index] = (PA >> 2) | 0xf;
+    early_pgtbl[index] = ((PA >> 12) << 10) | 0xf;
     printk("...setup_vm\n");
 }
 
 /* swapper_pg_dir: kernel pagetable 根目录， 在 setup_vm_final 进行映射。 */
 unsigned long  swapper_pg_dir[512] __attribute__((__aligned__(0x1000)));
+
+void MMU(uint64 vaddr, char *msg)
+{
+    unsigned long *second_pgtbl;
+    unsigned long *third_pgtbl;
+
+    int vpn2 = (vaddr >> 30) & 0x1ff;
+    int vpn1 = (vaddr >> 21) & 0x1ff;
+    int vpn0 = (vaddr >> 12) & 0x1ff;
+
+    second_pgtbl = (uint64 *)(((swapper_pg_dir[vpn2] >> 10) << 12) + PA2VA_OFFSET);
+    third_pgtbl = (uint64 *)(((second_pgtbl[vpn1] >> 10) << 12) + PA2VA_OFFSET);
+    uint64 paddr = (third_pgtbl[vpn0] >> 10 << 12) | (0xfff & vaddr);
+    printk ("%s va = %lx  pa = %lx\n", msg, vaddr, paddr);
+}
 
 void setup_vm_final(void) {
     memset(swapper_pg_dir, 0x0, PGSIZE);
@@ -45,7 +60,7 @@ void setup_vm_final(void) {
 
     // mapping kernel rodata -|-|R|V
     create_mapping(swapper_pg_dir, (uint64)_srodata, (uint64)_srodata - PA2VA_OFFSET, (uint64)(_erodata - _srodata), 3);
-
+    //MMU((uint64)_srodata);
     // mapping other memory -|W|R|V
     create_mapping(swapper_pg_dir, (uint64)_sdata, (uint64)_sdata- PA2VA_OFFSET, PHY_END + PA2VA_OFFSET - (uint64)_sdata, 7);
 
@@ -53,6 +68,10 @@ void setup_vm_final(void) {
     uint64 _satp = 0x8000000000000000 | (((uint64)swapper_pg_dir - PA2VA_OFFSET) >> 12);
     csr_write(satp, _satp);
 
+    MMU((uint64)_stext, "[Check] _stext:");
+    MMU((uint64)_srodata, "[Check] _srodata:");
+    MMU((uint64)_sdata, "[Check] _sdata:");
+    
     // YOUR CODE HERE
     // flush TLB
     asm volatile("sfence.vma zero, zero");
@@ -73,7 +92,7 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
     */
     // va: 9 | 9 | 9 | 12
     uint64 *second_pgtbl;
-    uint64 *first_pgtbl;
+    uint64 *third_pgtbl;
     int i = sz / PGSIZE + 1;
 
     while (i--)
@@ -81,30 +100,32 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
         int vpn2 = (va >> 30) & 0x1ff;
         int vpn1 = (va >> 21) & 0x1ff;
         int vpn0 = (va >> 12) & 0x1ff;
-        // 3
-        if( !(pgtbl[vpn2] & 0x1) )
-        {
-            second_pgtbl = (uint64 *)(kalloc() - PA2VA_OFFSET);
-            pgtbl[vpn2] = ((uint64)second_pgtbl >> 2) | 0x1;
-        }
+        // top page table
+        if(pgtbl[vpn2] & 0x1)
+            second_pgtbl = (uint64 *)((((uint64)pgtbl[vpn2] >> 10) << 12) + PA2VA_OFFSET);
         else
         {
-            second_pgtbl = (uint64 *)((pgtbl[vpn2] >> 10) << 12);
+            second_pgtbl = (uint64 *)kalloc();
+            pgtbl[vpn2] = ((((uint64)second_pgtbl - PA2VA_OFFSET) >> 12) << 10) | 0x1;
         }
-        // 2
-        if( !(second_pgtbl[vpn1] & 0x1) )
-        {
-            first_pgtbl = (uint64 *)(kalloc() - PA2VA_OFFSET);
-            second_pgtbl[vpn1] = ((uint64)first_pgtbl >> 2) | 0x1;
-        }
+        // second page table
+        if(second_pgtbl[vpn1] & 0x1)
+            third_pgtbl = (uint64 *)((((uint64)second_pgtbl[vpn1] >> 10) << 12) + PA2VA_OFFSET);
         else
         {
-            first_pgtbl = (uint64 *)((second_pgtbl[vpn1] >> 10) << 12);
+            third_pgtbl = (uint64 *)kalloc();
+            second_pgtbl[vpn1] = ((((uint64)third_pgtbl - PA2VA_OFFSET) >> 12) << 10) | 0x1;
         }
-        // 1
-        first_pgtbl[vpn0] = ((pa >> 12) << 10) | perm;
-
+        // third page table
+        if( !(third_pgtbl[vpn0] & 0x1) )
+            third_pgtbl[vpn0] = ((pa >> 12) << 10) | perm;
+        
         va += PGSIZE;
         pa += PGSIZE;
     }
+    // ------ Test Code -----
+    unsigned long int *p = 0xffffffe000202000;
+    unsigned long int raw = *p;
+    *p = raw;
+    // ------ Test Code -----
 }
